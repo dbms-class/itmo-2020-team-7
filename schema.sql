@@ -1,0 +1,34 @@
+CREATE DATABASE pharmacy;
+CREATE TABLE IF NOT EXISTS laboratory (ID INT PRIMARY KEY NOT NULL, NAME VARCHAR(50) NOT NULL, SCDNAME_BOSS VARCHAR(50) NOT NULL);
+CREATE TABLE IF NOT EXISTS active_agent (ID INT PRIMARY KEY NOT NULL, FORMULA TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS certificate (ID INT PRIMARY KEY NOT NULL, VALIDITY DATE NOT NULL, ID_laboratory INT NOT NULL, FOREIGN KEY (ID_laboratory) REFERENCES laboratory(ID) ON DELETE CASCADE);
+CREATE TABLE IF NOT EXISTS drug (ID INT PRIMARY KEY NOT NULL, tradename VARCHAR(50) NOT NULL, intern_name VARCHAR(50) NOT NULL, form VARCHAR(50) NOT NULL, producer VARCHAR(50) NOT NULL, id_certificate INT NOT NULL, id_active_agent INT NOT NULL, FOREIGN KEY (id_certificate) REFERENCES certificate(ID) ON DELETE CASCADE, FOREIGN KEY (id_active_agent) REFERENCES active_agent(ID) ON DELETE CASCADE);
+
+-- DROP TABLE IF EXISTS drug;
+-- DROP TABLE IF EXISTS certificate;
+-- DROP TABLE IF EXISTS active_agent;
+-- DROP TABLE IF EXISTS laboratory;
+-- DROP DATABASE IF EXISTS pharmacy;
+
+CREATE DATABASE wholesale;
+CREATE TABLE IF NOT EXISTS Warehouse (id INT PRIMARY KEY NOT NULL, addr TEXT NOT NULL);
+
+CREATE TABLE IF NOT EXISTS Distributor (id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, addr TEXT NOT NULL, account_number INT NOT NULL, contact_person TEXT NOT NULL, phone_number INT NOT NULL);
+
+CREATE TABLE IF NOT EXISTS Supply (id INT PRIMARY KEY NOT NULL, medicine_id INT NOT NULL, distributor_id INT NOT NULL, number_of_transfer_packages INT, transfer_package_weight INT, number_of_packages_to_sell_in_transfer INT, package_to_sell_price FLOAT NOT NULL, FOREIGN KEY (distributor_id) REFERENCES Distributor(id) ON DELETE CASCADE,FOREIGN KEY (medicine_id) REFERENCES  drug(id) ON DELETE CASCADE);
+
+CREATE TABLE IF NOT EXISTS Warehouse_supplies (warehouse_id INT PRIMARY KEY NOT NULL, supply_id INT NOT NULL, arrival_time DATE NOT NULL, warehouse_keeper TEXT NOT NULL, FOREIGN KEY (warehouse_id) REFERENCES Warehouse(id) ON DELETE CASCADE, FOREIGN KEY (supply_id) REFERENCES Supply(id) ON DELETE CASCADE);
+
+-- DROP TABLE IF EXISTS Warehouse;
+-- DROP TABLE IF EXISTS Warehouse_supplies;
+-- DROP TABLE IF EXISTS Distributor;
+-- DROP TABLE IF EXISTS Supply;
+
+CREATE DATABASE retail;
+CREATE TABLE IF NOT EXISTS Pharmacy_shop (id INT PRIMARY KEY NOT NULL, addr TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS Car (registration_number INT PRIMARY KEY NOT NULL, warehouse_id INT NOT NULL,maintanance_data DATE NOT NULL, FOREIGN KEY (warehouse_id) REFERENCES Warehouse(id) ON DELETE CASCADE);
+CREATE TABLE IF NOT EXISTS Good (pharmacy_shop_id INT PRIMARY KEY NOT NULL, medicine_id INT NOT NULL,price FLOAT NOT NULL, amount INT, FOREIGN KEY (pharmacy_shop_id) REFERENCES Pharmacy_shop(id) ON DELETE CASCADE, FOREIGN KEY (medicine_id) REFERENCES drug(id) ON DELETE CASCADE);
+
+-- DROP TABLE IF EXISTS Pharmacy_shop;
+-- DROP TABLE IF EXISTS Car;
+-- DROP TABLE IF EXISTS Good;
