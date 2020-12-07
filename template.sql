@@ -23,3 +23,9 @@ INSERT INTO Drug (tradename, intern_name, form_id, producer_id, certificate_id, 
 VALUES ('Озверин', 'от стресса', 2, 3, 1, 2);
 INSERT INTO Drug (tradename, intern_name, form_id, producer_id, certificate_id, active_agent_id)
 VALUES ('Боевой стимулятор', 'Легальный допинг', 2, 2, 3, 2);
+
+INSERT INTO Pharmacy_shop (id, address) VALUES (1, 'Иванова 6');
+INSERT INTO Pharmacy_shop (id, address) VALUES (2, 'Петрова 8');
+INSERT INTO Pharmacy_shop (id, address) VALUES (3, 'Ковалева 11');
+INSERT INTO Pharmacy_shop (id, address) VALUES (4, 'Козлова 1');
+

@@ -34,18 +34,8 @@ class App:
             pharmacies = cur.fetchall()
         return [{"id": pharmacy[0], "address": pharmacy[1]} for pharmacy in pharmacies]
     
-    """
-    def get_drug_id(cursor, new_drug_id, new_pharmacy_id, new_price):
-        cursor.execute(f"SELECT id from Pharmacy_drug where id={new_drug_id} AND pharmacy_shop_id={new_pharmacy_id} AND price={new_price}")
-        res = []
-        new_drug_ids = cursor.fetchall()
-        for drug in new_drug_ids:
-            res.append(drug[0])
-        if len(new_drug_ids) == 0:
-            return None
-        return res[0]
-    """
-    
+
+    """    
     @cherrypy.expose
     def update_retail(self, drug_id: int, pharmacy_id: int, remainder: int, price: int):
         with create_connection(self.args) as db:
@@ -57,7 +47,36 @@ class App:
             
         db.commit()
         return "Data inserted"
-        
+      """
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def update_retail(self, drug_id, pharmacy_id, remainder, price):
+          with self.connection_factory.conn() as db: 
+              cur = db.cursor()
+              cur.execute(
+                  "SELECT * FROM Pharmacy_drug "
+                  "WHERE id = %s AND pharmacy_shop_id = %s",
+                  (drug_id, pharmacy_id)
+                  )
+
+          if cur.fetchone() is not None:
+              cur.execute(
+                  "UPDATE Pharmacy_drug "
+                  "SET amount = %s, price = %s "
+                  "WHERE id = %s AND pharmacy_shop_id = %s",
+                  (remainder, price, drug_id, pharmacy_id)
+                  )
+              key = 'Data updated'
+          else:
+                  cur.execute(
+                      "INSERT INTO Pharmacy_drug "
+                      "(id, pharmacy_shop_id, amount, price) "
+                      "VALUES (%s, %s, %s, %s)",
+                      (drug_id, pharmacy_id, remainder, price)
+                      )
+                  key = 'Data inserted'     
+          db.commit()
+          return {key : 'ok'}        
 
 cherrypy.config.update({
   'server.socket_host': '0.0.0.0',
