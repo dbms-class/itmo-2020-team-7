@@ -47,12 +47,13 @@ class App:
     """
     
     @cherrypy.expose
-    def update_retail(self, drug_id: int, pharmacy_id: int, remainder: int, price: float):
+    def update_retail(self, drug_id: int, pharmacy_id: int, remainder: int, price: int):
         with create_connection(self.args) as db:
-            cur = db.cursor()      
-            cur.execute("INSERT INTO Pharmacy_drug (id, pharmacy_shop_id, amount, price) "
-                        "VALUES (%s, %s, %s, %s) ON CONFLICT (id, pharmacy_shop_id, price) DO UPDATE "
-                        "SET amount = %s", (drug_id, pharmacy_id, remainder, price, remainder))
+            cur = db.cursor()
+            sale_package = 1
+            cur.execute("INSERT INTO Pharmacy_drug (id, pharmacy_shop_id, sale_package_id, amount, price) "
+                        "VALUES (%s, %s, %s, %s, %s) ON CONFLICT (id, pharmacy_shop_id, price) DO UPDATE "
+                        "SET amount = %s", (drug_id, pharmacy_id, sale_package, remainder, price, remainder))
             
         db.commit()
         return "Data inserted"
