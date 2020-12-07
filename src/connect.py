@@ -26,7 +26,11 @@ def parse_cmd_line():
 
 # Создаёт подключение к постгресу в соответствии с аргументами командной строки.
 def create_connection_pg(args):
-    return pg_driver.connect(user=args.pg_user, password=args.pg_password, host=args.pg_host, port=args.pg_port)
+    return pg_driver.connect(user=args.pg_user,
+                             password=args.pg_password, 
+                             host=args.pg_host, 
+                             port=args.pg_port,
+                             database=args.pg_database)
 
 
 # Создаёт подключение к SQLite в соответствии с аргументами командной строки.
