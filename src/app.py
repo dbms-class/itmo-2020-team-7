@@ -21,10 +21,9 @@ class App:
             cur = db.cursor()
             cur.execute("SELECT id, tradename, intern_name FROM Drug")
             drugs = cur.fetchall()
-        return [{"id": str(drug[0]).encode('iso8859').decode('utf8'),
-                 "tradename": drug[1].encode('').decode('utf8'),
-                 "inn": drug[2]}
-                for drug in drugs]
+        return [{"id": str(drug[0]),
+                 "tradename": drug[1],
+                 "inn": drug[2]} for drug in drugs]
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
