@@ -35,23 +35,10 @@ class App:
         return [{"id": pharmacy[0], "address": pharmacy[1]} for pharmacy in pharmacies]
     
 
-    """    
-    @cherrypy.expose
-    def update_retail(self, drug_id: int, pharmacy_id: int, remainder: int, price: int):
-        with create_connection(self.args) as db:
-            cur = db.cursor()
-            sale_package = 1
-            cur.execute("INSERT INTO Pharmacy_drug (id, pharmacy_shop_id, sale_package_id, amount, price) "
-                        "VALUES (%s, %s, %s, %s, %s) ON CONFLICT (id, pharmacy_shop_id, price) DO UPDATE "
-                        "SET amount = %s", (drug_id, pharmacy_id, sale_package, remainder, price, remainder))
-            
-        db.commit()
-        return "Data inserted"
-      """
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def update_retail(self, drug_id, pharmacy_id, remainder, price):
-          with self.connection_factory.conn() as db: 
+          with create_connection(self.args) as db: 
               cur = db.cursor()
               cur.execute(
                   "SELECT * FROM Pharmacy_drug "
@@ -59,23 +46,23 @@ class App:
                   (drug_id, pharmacy_id)
                   )
 
-          if cur.fetchone() is not None:
-              cur.execute(
-                  "UPDATE Pharmacy_drug "
-                  "SET amount = %s, price = %s "
-                  "WHERE id = %s AND pharmacy_shop_id = %s",
-                  (remainder, price, drug_id, pharmacy_id)
-                  )
-              key = 'Data updated'
-          else:
+              if cur.fetchone() is not None:
                   cur.execute(
-                      "INSERT INTO Pharmacy_drug "
-                      "(id, pharmacy_shop_id, amount, price) "
-                      "VALUES (%s, %s, %s, %s)",
-                      (drug_id, pharmacy_id, remainder, price)
+                      "UPDATE Pharmacy_drug "
+                      "SET amount = %s, price = %s "
+                      "WHERE id = %s AND pharmacy_shop_id = %s",
+                      (remainder, price, drug_id, pharmacy_id)
                       )
-                  key = 'Data inserted'     
-          db.commit()
+                  key = 'Data updated'
+              else:
+                      cur.execute(
+                          "INSERT INTO Pharmacy_drug "
+                          "(id, pharmacy_shop_id, sale_package_id, amount, price) "
+                          "VALUES (%s, %s, %s, %s, %s)",
+                          (drug_id, pharmacy_id, '1', remainder, price)
+                          )
+                      key = 'Data inserted'     
+              db.commit()
           return {key : 'ok'}        
 
 cherrypy.config.update({

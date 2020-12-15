@@ -24,8 +24,18 @@ VALUES ('Озверин', 'от стресса', 2, 3, 1, 2);
 INSERT INTO Drug (tradename, intern_name, form_id, producer_id, certificate_id, active_agent_id)
 VALUES ('Боевой стимулятор', 'Легальный допинг', 2, 2, 3, 2);
 
-INSERT INTO Pharmacy_shop (id, address) VALUES (1, 'Иванова 6');
-INSERT INTO Pharmacy_shop (id, address) VALUES (2, 'Петрова 8');
-INSERT INTO Pharmacy_shop (id, address) VALUES (3, 'Ковалева 11');
-INSERT INTO Pharmacy_shop (id, address) VALUES (4, 'Козлова 1');
+INSERT INTO Package_type (name)
+VALUES ('Капсула');
+INSERT INTO Package_type (name)
+VALUES ('Таблетка');
 
+INSERT INTO Pharmacy_shop (address) VALUES ('Иванова 6');
+INSERT INTO Pharmacy_shop (address) VALUES ('Петрова 8');
+INSERT INTO Pharmacy_shop (address) VALUES ('Ковалева 11');
+INSERT INTO Pharmacy_shop (address) VALUES ('Козлова 1');
+
+INSERT INTO Sale_package (drug_id, package_type_id, price) 
+VALUES (1, 1, 10)
+
+INSERT INTO Pharmacy_drug (pharmacy_shop_id, sale_package_id, price, amount)
+VALUES (1, 1, 10, 2)
