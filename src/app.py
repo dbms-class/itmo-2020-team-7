@@ -63,7 +63,7 @@ class App:
                           )
                       key = 'Data inserted'     
               db.commit()
-          return {key : 'ok'}
+          return {key: 'ok'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -110,6 +110,52 @@ class App:
                         "min_price": min_price_,
                         "max_price": max_price_})
             return result
+
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def drug_move(self, drug_id, min_remainder, target_income_increase):
+        current_income = 0
+        result = []
+        with create_connection(self.args) as db:
+            cur = db.cursor()
+            cur.execute(
+                "SELECT pd.id, amount, pharmacy_shop_id, pd.price FROM Drug d "
+                "JOIN Sale_package sp ON d.id=sp.drug_id "
+                "JOIN Pharmacy_drug pd ON sp.id=pd.sale_package_id "
+                "WHERE d.id=%s"
+                "ORDER BY pd.price",
+                drug_id
+            )
+            query_result = cur.fetchall()
+            negative_remainder = [data for data in query_result if (data[1] - int(min_remainder)) < 0]
+            positive_remainder = [data for data in query_result if (data[1] - int(min_remainder)) >= 0]
+            for to_be_increased in reversed(negative_remainder):
+                i_id, i_amount, i_shop_id, i_price = to_be_increased
+                for to_be_decreased in positive_remainder:
+                    if current_income > int(target_income_increase):
+                        break
+                    d_id, d_amount, d_shop_id, d_price = to_be_decreased
+                    to_add = int(d_amount) - int(min_remainder)
+                    # Обновим значения для аптеки, в которой число лекарств увеличилось
+                    cur.execute(
+                        "UPDATE Pharmacy_drug SET amount=%s WHERE id=%s",
+                        (int(i_amount) + int(to_add), i_id)
+                    )
+                    # Обновим значения для аптеки, в которой число лекарств уменьшилось
+                    cur.execute(
+                        "UPDATE Pharmacy_drug SET amount=%s WHERE id=%s",
+                        (min_remainder, d_id)
+                    )
+                    result.append({
+                        "from_pharmacy_id": d_shop_id,
+                        "to_pharmacy_id": i_shop_id,
+                        "price_difference": int(i_price) - int(d_price),
+                        "count": to_add
+                    })
+                    current_income += int(i_price) * (int(i_amount) + int(to_add)) - int(d_price) * int(to_add)
+        return result
+
 
 cherrypy.config.update({
   'server.socket_host': '0.0.0.0',
