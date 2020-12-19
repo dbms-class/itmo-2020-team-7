@@ -6,7 +6,6 @@ from connect import create_connection
 from random import randint
 
 
-
 @cherrypy.expose
 class App:
     def __init__(self, args):
@@ -39,11 +38,7 @@ class App:
            with create_connection(self.args) as db:
                pass
            return {"rake":""}
-        with create_connection(self.args) as db:
-            cur = db.cursor()
-            cur.execute("SELECT id, address FROM Pharmacy_shop")
-            pharmacies = cur.fetchall()
-        return [{"id": pharmacy[0], "address": pharmacy[1]} for pharmacy in pharmacies]
+
     
 
     @cherrypy.expose
@@ -75,9 +70,99 @@ class App:
                       key = 'Data inserted'     
               db.commit()
           return {key : 'ok'}        
+       
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def status_retail(self, drug_id=None, min_remainder=0, max_price=None):
+
+        with create_connection(self.args) as db:
+            cur = db.cursor()
+            if drug_id is None:
+                cur.execute("SELECT id FROM Drug")
+                drug_ids = cur.fetchall()
+            else:
+                drug_ids = [drug_id]
+            result = []
+            for drug in drug_ids:
+                if max_price is not None:
+                    price_filter = "AND PD.price <= {} ".format(max_price)
+                else:
+                    price_filter = ""
+
+                cur.execute("SELECT D.tradename, D.intern_name, PS.id, PS.address, PD.amount, "
+                            "PD.price, min(PD.price) OVER(), max(PD.price) OVER() "
+                            "FROM Drug D "
+                            "JOIN Sale_package SP ON SP.drug_id = D.id "
+                            "JOIN Pharmacy_drug PD ON PD.sale_package_id = SP.id "
+                            "JOIN Pharmacy_shop PS ON PS.id = PD.pharmacy_shop_id "
+                            "WHERE D.id = %s AND PD.amount >= %s " + price_filter,
+                            (drug, min_remainder))
+
+                drug_result = cur.fetchall()
+                for i, elem in enumerate(drug_result):
+                    print(elem)
+                    result.append({
+                        "drug_id": drug,
+                        "drug_trade_name": elem[0],
+                        "drug_inn": elem[1],
+                        "pharmacy_id": elem[2],
+                        "pharmacy_address": elem[3],
+                        "remainder": elem[4],
+                        "price": elem[5],
+                        "min_price": elem[6],
+                        "max_price": elem[7]})
+
+            return result
+
+          
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def drug_move(self, drug_id, min_remainder, target_income_increase):
+        current_income = 0
+        result = []
+        with create_connection(self.args) as db:
+            cur = db.cursor()
+            cur.execute(
+                "SELECT pd.id, amount, pharmacy_shop_id, pd.price FROM Drug d "
+                "JOIN Sale_package sp ON d.id=sp.drug_id "
+                "JOIN Pharmacy_drug pd ON sp.id=pd.sale_package_id "
+                "WHERE d.id=%s"
+                "ORDER BY pd.price",
+                drug_id
+            )
+            query_result = cur.fetchall()
+            negative_remainder = [data for data in query_result if (data[1] - int(min_remainder)) < 0]
+            positive_remainder = [data for data in query_result if (data[1] - int(min_remainder)) >= 0]
+            for to_be_increased in reversed(negative_remainder):
+                i_id, i_amount, i_shop_id, i_price = to_be_increased
+                for to_be_decreased in positive_remainder:
+                    if current_income > int(target_income_increase):
+                        break
+                    d_id, d_amount, d_shop_id, d_price = to_be_decreased
+                    to_add = int(d_amount) - int(min_remainder)
+                    # Обновим значения для аптеки, в которой число лекарств увеличилось
+                    cur.execute(
+                        "UPDATE Pharmacy_drug SET amount=%s WHERE id=%s",
+                        (int(i_amount) + int(to_add), i_id)
+                    )
+                    # Обновим значения для аптеки, в которой число лекарств уменьшилось
+                    cur.execute(
+                        "UPDATE Pharmacy_drug SET amount=%s WHERE id=%s",
+                        (min_remainder, d_id)
+                    )
+                    result.append({
+                        "from_pharmacy_id": d_shop_id,
+                        "to_pharmacy_id": i_shop_id,
+                        "price_difference": int(i_price) - int(d_price),
+                        "count": to_add
+                    })
+                    current_income += int(i_price) * (int(i_amount) + int(to_add)) - int(d_price) * int(to_add)
+        return result
+
 
 cherrypy.config.update({
-  'server.socket_host': '0.0.0.0',
-  'server.socket_port': 8888,
+    'server.socket_host': '0.0.0.0',
+    'server.socket_port': 8888,
 })
 cherrypy.quickstart(App(parse_cmd_line()))

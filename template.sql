@@ -39,3 +39,8 @@ VALUES (1, 1, 10)
 
 INSERT INTO Pharmacy_drug (pharmacy_shop_id, sale_package_id, price, amount)
 VALUES (1, 1, 10, 2)
+=======
+VALUES (1, 1, 10);
+
+INSERT INTO Pharmacy_drug (pharmacy_shop_id, sale_package_id, price, amount)
+VALUES (1, 1, 10, 2);
