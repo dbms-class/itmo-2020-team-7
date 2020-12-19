@@ -3,6 +3,9 @@ import cherrypy
 from connect import parse_cmd_line
 from connect import create_connection
 
+from random import randint
+
+
 
 @cherrypy.expose
 class App:
@@ -16,10 +19,13 @@ class App:
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def drugs(self):
+     with create_connection(self.args) as db1:
+      with create_connection(self.args) as db2:           
         with create_connection(self.args) as db:
             print(self.args)
             cur = db.cursor()
-            cur.execute("SELECT id, tradename, intern_name FROM Drug")
+            #cur.execute("SELECT id, tradename, intern_name FROM Drug")
+            cur.execute("SELECT * FROM Drug")
             drugs = cur.fetchall()
         return [{"id": str(drug[0]),
                  "tradename": drug[1],
@@ -28,6 +34,11 @@ class App:
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def pharmacies(self):
+        num = randint(0, 9)
+        if (num % 2) == 0:
+           with create_connection(self.args) as db:
+               pass
+           return {"rake":""}
         with create_connection(self.args) as db:
             cur = db.cursor()
             cur.execute("SELECT id, address FROM Pharmacy_shop")
