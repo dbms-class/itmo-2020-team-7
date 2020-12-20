@@ -35,11 +35,6 @@ INSERT INTO Pharmacy_shop (address) VALUES ('Ковалева 11');
 INSERT INTO Pharmacy_shop (address) VALUES ('Козлова 1');
 
 INSERT INTO Sale_package (drug_id, package_type_id, price) 
-VALUES (1, 1, 10)
-
-INSERT INTO Pharmacy_drug (pharmacy_shop_id, sale_package_id, price, amount)
-VALUES (1, 1, 10, 2)
-=======
 VALUES (1, 1, 10);
 
 INSERT INTO Pharmacy_drug (pharmacy_shop_id, sale_package_id, price, amount)
