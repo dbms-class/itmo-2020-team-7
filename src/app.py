@@ -38,6 +38,11 @@ class App:
            with create_connection(self.args) as db:
                pass
            return {"rake":""}
+        with create_connection(self.args) as db:
+            cur = db.cursor()
+            cur.execute("SELECT id, address FROM Pharmacy_shop")
+            pharmacies = cur.fetchall()
+        return [{"id": pharmacy[0], "address": pharmacy[1]} for pharmacy in pharmacies]
 
     
 
